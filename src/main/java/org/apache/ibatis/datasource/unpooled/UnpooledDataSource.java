@@ -39,8 +39,11 @@ import org.apache.ibatis.util.MapUtil;
  */
 public class UnpooledDataSource implements DataSource {
 
+  // 加载Driver类的类加载器
   private ClassLoader driverClassLoader;
+  // 数据库连接驱动的相关配置
   private Properties driverProperties;
+  // 缓存所有已注册的数据库连接驱动
   private static final Map<String, Driver> registeredDrivers = new ConcurrentHashMap<>();
 
   private String driver;
@@ -49,13 +52,16 @@ public class UnpooledDataSource implements DataSource {
   private String password;
 
   private Boolean autoCommit;
+  // 默认事务隔离级别
   private Integer defaultTransactionIsolationLevel;
   private Integer defaultNetworkTimeout;
 
   static {
+    // 从DriverManager中读取JDBC驱动
     Enumeration<Driver> drivers = DriverManager.getDrivers();
     while (drivers.hasMoreElements()) {
       Driver driver = drivers.nextElement();
+      // 将DriverManager中的全部JDBC驱动记录到registeredDrivers集合
       registeredDrivers.put(driver.getClass().getName(), driver);
     }
   }
@@ -225,6 +231,7 @@ public class UnpooledDataSource implements DataSource {
   }
 
   private Connection doGetConnection(Properties properties) throws SQLException {
+    // 初始化数据库链接
     initializeDriver();
     Connection connection = DriverManager.getConnection(url, properties);
     configureConnection(connection);

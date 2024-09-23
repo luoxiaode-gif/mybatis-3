@@ -107,6 +107,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       throw new BuilderException("Each XMLConfigBuilder can only be used once.");
     }
     parsed = true;
+    // mybatis配置文件解析的主流程
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
@@ -114,11 +115,16 @@ public class XMLConfigBuilder extends BaseBuilder {
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
+      // 属性解析
       propertiesElement(root.evalNode("properties"));
+      // 加载settings节点settingsAsProperties
       Properties settings = settingsAsProperties(root.evalNode("settings"));
+      // 加载自定义VFS loadCustomVfs
       loadCustomVfsImpl(settings);
       loadCustomLogImpl(settings);
+      // 解析类型别名typeAliasesElement
       typeAliasesElement(root.evalNode("typeAliases"));
+      // 加载插件
       pluginsElement(root.evalNode("plugins"));
       objectFactoryElement(root.evalNode("objectFactory"));
       objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
@@ -140,6 +146,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
     Properties props = context.getChildrenAsProperties();
     // Check that all settings are known to the configuration class
+    // 检查所有从settings加载的设置,确保它们都在Configuration定义的范围内
     MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);
     for (Object key : props.keySet()) {
       if (!metaConfig.hasSetter(String.valueOf(key))) {
@@ -238,9 +245,11 @@ public class XMLConfigBuilder extends BaseBuilder {
     if (context == null) {
       return;
     }
+    // 加载property节点为property
     Properties defaults = context.getChildrenAsProperties();
     String resource = context.getStringAttribute("resource");
     String url = context.getStringAttribute("url");
+    // 必须至少包含resource或者url属性之一
     if (resource != null && url != null) {
       throw new BuilderException(
           "The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");

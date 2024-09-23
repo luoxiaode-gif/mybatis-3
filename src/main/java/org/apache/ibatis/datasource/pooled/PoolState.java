@@ -32,16 +32,25 @@ public class PoolState {
   private final ReentrantLock lock = new ReentrantLock();
 
   protected PooledDataSource dataSource;
-
+  // 存储空闲状态的 PooledConnection 对象
   protected final List<PooledConnection> idleConnections = new ArrayList<>();
+  // 存储活跃状态的 PooledConnection 对象
   protected final List<PooledConnection> activeConnections = new ArrayList<>();
+  // 请求数据库连接的次数
   protected long requestCount;
+  // 获取连接的累积耗时。
   protected long accumulatedRequestTime;
+  // 所有连接的 checkoutTime 累加。PooledConnection 中有一个 checkoutTime 属性，表示的是使用方从连接池中取出连接到归还连接的总时长，也就是连接被使用的时长。
   protected long accumulatedCheckoutTime;
+  // 当连接长时间未归还给连接池时，会被认为该连接超时，该字段记录了超时的连接个数。
   protected long claimedOverdueConnectionCount;
+  // 记录累积超时时间
   protected long accumulatedCheckoutTimeOfOverdueConnections;
+  // 当连接池全部连接已经被占用之后，新的请求会阻塞等待，该字段就记录了累积的阻塞等待总时间。
   protected long accumulatedWaitTime;
+  // 记录了阻塞等待总次数。
   protected long hadToWaitCount;
+  // 无效的连接数
   protected long badConnectionCount;
 
   public PoolState(PooledDataSource dataSource) {

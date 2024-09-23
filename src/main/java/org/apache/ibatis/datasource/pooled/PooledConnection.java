@@ -26,19 +26,28 @@ import org.apache.ibatis.reflection.ExceptionUtil;
 /**
  * @author Clinton Begin
  */
+// 代理对象
 class PooledConnection implements InvocationHandler {
 
   private static final String CLOSE = "close";
   private static final Class<?>[] IFACES = { Connection.class };
 
   private final int hashCode;
+  // 记录当前PooledConnection对象归属的PooledDataSource对象。
   private final PooledDataSource dataSource;
+  // 当前PooledConnection底层的真正数据库链接对象
   private final Connection realConnection;
+  // 指向了 realConnection 数据库连接的代理对象。
   private final Connection proxyConnection;
+  // 使用方从连接池中获取连接的时间戳。
   private long checkoutTimestamp;
+  // 连接创建的时间戳。
   private long createdTimestamp;
+  // 连接最后一次被使用的时间戳。
   private long lastUsedTimestamp;
+  // 数据库连接的标识。该标识是由数据库 URL、username 和 password 三部分组合计算出来的 hash 值，主要用于连接对象确认归属的连接池。
   private int connectionTypeCode;
+  // 用于标识 PooledConnection 对象是否有效。该字段的主要目的是防止使用方将连接归还给连接池之后，依然保留该 PooledConnection 对象的引用并继续通过该 PooledConnection 对象操作数据库。
   private boolean valid;
 
   /**
@@ -56,6 +65,7 @@ class PooledConnection implements InvocationHandler {
     this.createdTimestamp = System.currentTimeMillis();
     this.lastUsedTimestamp = System.currentTimeMillis();
     this.valid = true;
+    // 代理模式创建代理对象
     this.proxyConnection = (Connection) Proxy.newProxyInstance(Connection.class.getClassLoader(), IFACES, this);
   }
 
@@ -246,6 +256,7 @@ class PooledConnection implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     String methodName = method.getName();
     if (CLOSE.equals(methodName)) {
+      // 如果调用CLOSE方法，并没有直接关闭底层链接，而是将其归还给关联的连接池
       dataSource.pushConnection(this);
       return null;
     }
